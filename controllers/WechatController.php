@@ -62,7 +62,6 @@ class WechatController extends AdminController
     public function actionCreate()
     {
         $model = new WechatForm();
-        $model->access_token = 'lb';
         if ($model->load(Yii::$app->request->post())) {
             if (Request::isAjax()) {
                 Yii::$app->getResponse()->format = Response::FORMAT_JSON;
