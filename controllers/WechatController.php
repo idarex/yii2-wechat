@@ -25,6 +25,7 @@ class WechatController extends AdminController
      * @var bool
      */
     public $enableCheckWechat = false;
+
     /**
      * 显示所有公众号
      * @return mixed
@@ -61,6 +62,7 @@ class WechatController extends AdminController
     public function actionCreate()
     {
         $model = new WechatForm();
+        $model->access_token = 'lb';
         if ($model->load(Yii::$app->request->post())) {
             if (Request::isAjax()) {
                 Yii::$app->getResponse()->format = Response::FORMAT_JSON;
@@ -73,7 +75,7 @@ class WechatController extends AdminController
             'model' => $model
         ]);
     }
-    
+
     /**
      * 头像,二维码上传
      * @param $id

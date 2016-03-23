@@ -11,8 +11,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= $this->render('_form', [
         'model' => $model,
-        'ruleKeyword' => $ruleKeyword,
-        'ruleKeywords' => $ruleKeywords
     ]) ?>
 
 <?php PagePanel::end() ?>

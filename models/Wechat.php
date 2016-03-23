@@ -85,11 +85,20 @@ class Wechat extends ActiveRecord
     public function rules()
     {
         return [
-            [['name', 'account', 'original', 'type', 'token', 'key', 'secret', 'encoding_aes_key', 'avatar', 'qrcode'], 'required', 'except' => ['avatarUpload', 'qrcodeUpload']],
+            [
+                ['name', 'account', 'original', 'type', 'token', 'key', 'secret',],
+                'required',
+                'except' => ['avatarUpload', 'qrcodeUpload']
+            ],
             [['type', 'status'], 'integer', 'except' => ['avatarUpload', 'qrcodeUpload']],
             [['name', 'original', 'username'], 'string', 'max' => 40, 'except' => ['avatarUpload', 'qrcodeUpload']],
             [['token', 'password'], 'string', 'max' => 32, 'except' => ['avatarUpload', 'qrcodeUpload']],
-            [['address', 'description', 'avatar', 'qrcode'], 'string', 'max' => 255, 'except' => ['avatarUpload', 'qrcodeUpload']],
+            [
+                ['address', 'description', 'avatar', 'qrcode'],
+                'string',
+                'max' => 255,
+                'except' => ['avatarUpload', 'qrcodeUpload']
+            ],
             [['account'], 'string', 'max' => 30, 'except' => ['avatarUpload', 'qrcodeUpload']],
             [['key', 'secret'], 'string', 'max' => 50, 'except' => ['avatarUpload', 'qrcodeUpload']],
             [['encoding_aes_key'], 'string', 'max' => 43, 'except' => ['avatarUpload', 'qrcodeUpload']],

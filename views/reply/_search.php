@@ -19,17 +19,9 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'wid') ?>
 
-    <?= $form->field($model, 'name') ?>
+    <?= $form->field($model, 'key_words') ?>
 
-    <?= $form->field($model, 'module') ?>
-
-    <?= $form->field($model, 'status') ?>
-
-    <?php // echo $form->field($model, 'priority') ?>
-
-    <?php // echo $form->field($model, 'created_at') ?>
-
-    <?php // echo $form->field($model, 'updated_at') ?>
+    <?= $form->field($model, 'comment') ?>
 
     <div class="form-group">
         <?= Html::submitButton('Search', ['class' => 'btn btn-primary']) ?>

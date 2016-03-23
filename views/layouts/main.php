@@ -8,7 +8,6 @@ use callmez\wechat\helpers\ModuleHelper;
 use callmez\wechat\widgets\CategoryMenu;
 
 WechatAsset::register($this);
-
 $wechat = $this->context->getWechat(); // 当前设置的管理微信
 $currentModule = $this->context->module; // 当前所在模块
 $wechatModule = Yii::$app->getModule('wechat'); // 微信主模块
@@ -17,11 +16,12 @@ $this->params['breadcrumbs'] = array_merge([
 ], isset($this->params['breadcrumbs']) ? $this->params['breadcrumbs'] : [])
 ?>
 <?php $this->beginContent($wechatModule->siteAdminLayout) ?>
-    <?= Alert::widget() ?>
+<?= Alert::widget() ?>
     <div class="row">
         <div class="col-sm-2 mb20">
             <?php if ($wechat): ?>
-                <?= Html::a($wechat->name, ['/wechat/wechat/update', 'id' => $wechat->id], ['class' => 'btn btn-block btn-success mb10']) ?>
+                <?= Html::a($wechat->name, ['/wechat/wechat/update', 'id' => $wechat->id],
+                    ['class' => 'btn btn-block btn-success mb10']) ?>
             <?php endif ?>
             <?= CategoryMenu::widget([
                 'items' => $wechatModule->getCategoryMenus()

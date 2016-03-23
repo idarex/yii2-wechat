@@ -145,7 +145,7 @@ class Module extends \yii\base\Module
         'service' => '常用服务',
         'module' => '扩展模块',
         'test' => '功能测试',
-        'other' => '其他'
+        'other' => '其他',
     ];
     /**
      * 设置所有的模块分类
@@ -233,8 +233,8 @@ class Module extends \yii\base\Module
         ],
         'advanced' => [
             ['label' => '自定义菜单', 'url' => ['/wechat/menu/index']],
-            ['label' => '素材管理', 'url' => ['/wechat/media/index']],
-        ]
+            ['label'=>'关键字回复','url'=>['/wechat/reply/index']],
+        ],
     ];
 
     /**

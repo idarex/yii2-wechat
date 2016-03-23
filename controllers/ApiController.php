@@ -33,6 +33,11 @@ class ApiController extends BaseController
     public $message;
 
     /**
+     * 向subScribe控制器传数据
+     *
+     */
+    public $requests;
+    /**
      * @var Wechat
      */
     private $_wechat;
@@ -77,6 +82,7 @@ class ApiController extends BaseController
      * 消息处理前事件
      */
     const EVENT_BEFORE_PROCESS = 'beforeProcess';
+
     /**
      * 消息处理前事件
      * @return mixed
@@ -92,6 +98,7 @@ class ApiController extends BaseController
      * 消息处理后事件
      */
     const EVENT_AFTER_PROCESS = 'afterProcess';
+
     /**
      * 消息处理后事件
      * @param $result
@@ -138,8 +145,9 @@ class ApiController extends BaseController
             case 'POST':
                 $this->setWechat($wechat);
                 $this->message = $this->parseRequest();
+                //粉丝系统还没开发完全,暂时屏蔽,可以将关键字统计代替粉丝系统
                 $result = null;
-                if($this->beforeProcess()) {
+                if ($this->beforeProcess()) {
                     $result = $this->resolveProcess(); // 处理请求
                     $this->afterProcess($result);
                 }
@@ -163,7 +171,7 @@ class ApiController extends BaseController
         }
         $message = [];
         foreach ($xml as $attribute => $value) {
-            $message[$attribute] = is_array($value) ? $value : (string) $value;
+            $message[$attribute] = is_array($value) ? $value : (string)$value;
         }
 
         Yii::info($message, __METHOD__);
@@ -210,12 +218,10 @@ class ApiController extends BaseController
             } else {
                 continue;
             }
-
             // 转发路由请求 参考: Yii::$app->runAction()
             $parts = Yii::$app->createController($route);
             if (is_array($parts)) {
                 list($controller, $actionID) = $parts;
-
                 // 微信请求的处理器必须继承callmez\wechat\components\ProcessController
                 if (!($controller instanceof ProcessController)) {
                     throw new InvalidCallException("Wechat process controller must instance of '" . ProcessController::className() . "'");
@@ -223,12 +229,10 @@ class ApiController extends BaseController
                 // 传入当前公众号和微信请求内容
                 $controller->message = $this->message;
                 $controller->setWechat($this->getWechat());
-
                 $oldController = Yii::$app->controller;
                 $result = $controller->runAction($actionID);
                 Yii::$app->controller = $oldController;
             }
-
             // 如果有数据则跳出循环直接输出. 否则只作为订阅类型继续循环处理
             if ($result !== null) {
                 break;
@@ -287,10 +291,11 @@ class ApiController extends BaseController
         if (method_exists($this, $method)) {
             $matches = call_user_func([$this, $method]);
         }
-        $matches = array_merge([
+        //将粉丝的功能暂时屏蔽
+        /*$matches = array_merge([
             ['route' => '/wechat/process/fans/record'] // 记录常用数据
-        ], $matches);
-
+        ], $matches);*/
+        $matches = [['route' => '/wechat/process/subscribe/index']];
         Yii::info($matches, __METHOD__);
         return $matches;
     }

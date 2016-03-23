@@ -10,6 +10,7 @@ use callmez\wechat\models\ReplyRule;
 use callmez\wechat\models\ReplyRuleSearch;
 use callmez\wechat\models\ReplyRuleKeyword;
 use callmez\wechat\components\AdminController;
+use common\models\WechatAutoReply;
 
 /**
  * 模块回复规则控制
@@ -20,21 +21,15 @@ class ReplyController extends AdminController
     /**
      * 扩展模块回复列表
      * @return mixed
+     * 改前actionIndex($mid)
      */
-    public function actionIndex($mid)
+    public function actionIndex()
     {
-        $searchModel = new ReplyRuleSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-        $dataProvider->query->andWhere([
-            'wid' => $this->getWechat()->id, // 公众号过滤
-            'mid' => $mid
-        ]);
 
-        return $this->render('index', [
-            'mid' => $mid,
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+        $serchModel = new WechatAutoReply();
+        $dataProvider = $serchModel->search(Yii::$app->request->queryParams);
+        $dataProvider->query->andWhere(['wid'=>$this->getWechat()->id]);
+        return $this->render('index',['searchModel'=>$serchModel,'dataProvider'=>$dataProvider]);
     }
 
     /**
@@ -42,23 +37,18 @@ class ReplyController extends AdminController
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate($mid)
+    public function actionCreate()
     {
-        $model = new ReplyRule();
-        $ruleKeyword = new ReplyRuleKeyword();
-        $ruleKeywords = [];
+        $model= new WechatAutoReply();
         if ($model->load(Yii::$app->request->post())) {
             $model->wid = $this->getWechat()->id;
-            $model->mid = $mid;
-            if ($this->save($model, $ruleKeyword, $ruleKeywords)) {
-                return $this->flash('添加成功!', 'success', ['update', 'id' => $model->id]);
+            if($model->save()){
+                return $this->redirect('index');
             }
         }
         return $this->render('create', [
-            'mid' => $mid,
             'model' => $model,
-            'ruleKeyword' => $ruleKeyword,
-            'ruleKeywords' => $ruleKeywords
+            'dropDownList'=>$this->dropDownList,
         ]);
     }
 
@@ -70,20 +60,15 @@ class ReplyController extends AdminController
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
-        $ruleKeyword = new ReplyRuleKeyword();
-        $ruleKeywords = $model->keywords;
+        $model= new WechatAutoReply();
+        $model = $model->findOne($id);
         if ($model->load(Yii::$app->request->post())) {
             $model->wid = $this->getWechat()->id;
-            if ($this->save($model, $ruleKeyword, $ruleKeywords)) {
-                return $this->flash('修改成功!', 'success', ['update', 'id' => $model->id]);
+            if($model->save()){
+                return $this->redirect('index');
             }
         }
-        return $this->render('update', [
-            'model' => $model,
-            'ruleKeyword' => $ruleKeyword,
-            'ruleKeywords' => $ruleKeywords
-        ]);
+        return $this->render('update',['model'=>$model]);
     }
 
     /**
@@ -94,11 +79,10 @@ class ReplyController extends AdminController
      */
     public function actionDelete($id)
     {
-        $model = $this->findModel($id);
-        $mid = $model->mid;
+        $model = new WechatAutoReply();
+        $model = $model->findOne($id);
         $model->delete();
-
-        return $this->redirect(['index', 'mid' => $mid]);
+        return $this->redirect(['index']);
     }
 
     /**

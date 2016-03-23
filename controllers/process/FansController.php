@@ -35,6 +35,8 @@ class FansController extends ProcessController
         } elseif ($fans->status != Fans::STATUS_SUBSCRIBED) { // 更新关注状态
             $fans->subscribe();
         }
+        $result = $this->responseText('hello,world');
+        return $result;
 
 //        $history = new MessageHistory();
 //        $attributes = [
