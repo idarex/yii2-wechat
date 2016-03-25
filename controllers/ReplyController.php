@@ -2,12 +2,11 @@
 
 namespace callmez\wechat\controllers;
 
+use common\components\Qiniu;
 use Yii;
-use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
 use callmez\wechat\models\ReplyRule;
-use callmez\wechat\models\ReplyRuleSearch;
 use callmez\wechat\models\ReplyRuleKeyword;
 use callmez\wechat\components\AdminController;
 use common\models\WechatAutoReply;
@@ -28,8 +27,17 @@ class ReplyController extends AdminController
 
         $serchModel = new WechatAutoReply();
         $dataProvider = $serchModel->search(Yii::$app->request->queryParams);
-        $dataProvider->query->andWhere(['wid'=>$this->getWechat()->id]);
-        return $this->render('index',['searchModel'=>$serchModel,'dataProvider'=>$dataProvider]);
+        $dataProvider->query->andWhere(['wid' => $this->getWechat()->id]);
+        return $this->render('index', ['searchModel' => $serchModel, 'dataProvider' => $dataProvider]);
+    }
+
+    /**
+     *选择
+     *
+     */
+    public function actionSelect()
+    {
+        return $this->render('select');
     }
 
     /**
@@ -39,16 +47,43 @@ class ReplyController extends AdminController
      */
     public function actionCreate()
     {
-        $model= new WechatAutoReply();
-        if ($model->load(Yii::$app->request->post())) {
+        $type = Yii::$app->request->get('reply_type');
+        $model = new WechatAutoReply();
+        if ($request = Yii::$app->request->post()) {
             $model->wid = $this->getWechat()->id;
-            if($model->save()){
+            if ($type == 'invalid') {
+                $model->key_words = 'invalid';
+            } elseif ($type == 'onSubscribe') {
+                $model->key_words = 'onSubscribe';
+            } else {
+                $model->key_words = $request['key_words'][0];
+            }
+
+            $model->reply_type = $request['reply_type'];
+            if ($request['reply_type'] == 'image') {
+                $url = $this->fileupload($_FILES);
+                $model->comment = json_encode($url);
+            } elseif ($request['reply_type'] == 'news') {
+                $url = $this->fileUpload($_FILES);
+                $result = [];
+                foreach ($request['data'] as $key => $data) {
+                    $result[$key]['comment'] = $data;
+                    $result[$key]['url'] = $url[$key];
+                    $result[$key]['title'] = $request['title'][$key];
+                    $result[$key]['link'] = $request['link'][$key];
+                    //$result[]['link']= $link[$key];
+                }
+                $model->comment = json_encode($result);
+            } else {
+                $model->comment = json_encode($request['data'][0]);
+            }
+            if ($model->save()) {
                 return $this->redirect('index');
             }
         }
         return $this->render('create', [
             'model' => $model,
-            'dropDownList'=>$this->dropDownList,
+            'type' => $type,
         ]);
     }
 
@@ -60,15 +95,44 @@ class ReplyController extends AdminController
      */
     public function actionUpdate($id)
     {
-        $model= new WechatAutoReply();
+        $type = Yii::$app->request->get('reply_type');
+        $model = new WechatAutoReply();
         $model = $model->findOne($id);
-        if ($model->load(Yii::$app->request->post())) {
+        $data = \Qiniu\json_decode($model->comment, true);
+        if ($type == 'image') {
+            $model->comment = $data[0];
+        }
+        if ($request = Yii::$app->request->post()) {
             $model->wid = $this->getWechat()->id;
-            if($model->save()){
+            $model->key_words = $request['key_words'][0];
+            $model->reply_type = $request['reply_type'];
+            if ($request['reply_type'] == 'image') {
+                $url = $this->fileUpload($_FILES);
+                if (!$url) {
+                    $url = $request['pic_default'];
+                }
+                $model->comment = json_encode($url);
+            } elseif ($request['reply_type'] == 'news') {
+                $url = $this->fileUpload($_FILES);
+                if (!$url) {
+                    $url = $request['pic_default'];
+                }
+                $result = [];
+                foreach ($request['data'] as $key => $data) {
+                    $result[$key]['comment'] = $data;
+                    $result[$key]['url'] = $url[$key];
+                    $result[$key]['title'] = $request['title'][$key];
+                    $result[$key]['link'] = $request['link'][$key];
+                }
+                $model->comment = json_encode($result);
+            } else {
+                $model->comment = json_encode($request['data'][0]);
+            }
+            if ($model->save()) {
                 return $this->redirect('index');
             }
         }
-        return $this->render('update',['model'=>$model]);
+        return $this->render('update', ['model' => $model, 'type' => $type]);
     }
 
     /**
@@ -131,6 +195,42 @@ class ReplyController extends AdminController
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+
+    protected function fileUpload($file)
+    {
+        if (is_uploaded_file($file['pic']['tmp_name'][0])) {
+            $result = [];
+            foreach ($file['pic']['tmp_name'] as $key => $value) {
+                $name = $file['pic']['name'][$key];
+                $type = $file['pic']['type'][$key];
+                $size = $file['pic']['size'][$key];
+                $tmp_name = $file['pic']['tmp_name'][$key];
+                $okType = false;
+                switch ($type) {
+                    case 'image/pjpeg':
+                        $okType = true;
+                        break;
+                    case 'image/jpeg':
+                        $okType = true;
+                        break;
+                    case 'image/gif':
+                        $okType = true;
+                        break;
+                    case 'image/png':
+                        $okType = true;
+                        break;
+                }
+                if ($okType) {
+                    $error = $file['pic']['error'][$key];
+                    $data = Yii::$app->qiniu->uploadFile($tmp_name);
+                    $result[] = Qiniu::ACCESS_DOMAIN . '/' . $data['key'];
+                }
+            }
+            return $result;
+        } else {
+            return false;
         }
     }
 }

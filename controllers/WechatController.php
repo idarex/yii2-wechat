@@ -61,6 +61,7 @@ class WechatController extends AdminController
      */
     public function actionCreate()
     {
+
         $model = new WechatForm();
         if ($model->load(Yii::$app->request->post())) {
             if (Request::isAjax()) {
