@@ -26,28 +26,27 @@ $this->params['breadcrumbs'][] = $this->title;
         ],
         'key_words',
         [
-            'format'=>raw,
-            'header'=>'<a>回复类型</a>',
-            'value'=>function($data){
-                if($data->reply_type=='text'){
+            'format' => raw,
+            'header' => '<a>回复类型</a>',
+            'value' => function ($data) {
+                if ($data->reply_type == 'text') {
                     $result = '文本回复';
                 }
-                if($data->reply_type=='image'){
+                if ($data->reply_type == 'image') {
                     $result = '图片回复';
                 }
-                if($data->reply_type=='news'){
+                if ($data->reply_type == 'news') {
                     $result = '图文回复';
                 }
-                if($data->reply_type=='invalid'){
+                if ($data->reply_type == 'invalid') {
                     $result = '无效消息回复';
                 }
-                if($data->reply_type=='onSubscribe'){
+                if ($data->reply_type == 'onSubscribe') {
                     $result = '关注自动回复';
                 }
                 return $result;
             }
         ],
-        'reply_type',
         'created_at:datetime',
         'updated_at:datetime',
         [
@@ -56,10 +55,10 @@ $this->params['breadcrumbs'][] = $this->title;
             'urlCreator' => function ($action, $data, $key, $index) {
                 switch ($action) {
                     case 'update':
-                        return '/wechat/reply/update?id='.$data->id.'&reply_type=' . $data->reply_type;
+                        return '/wechat/reply/update?id=' . $data->id . '&reply_type=' . $data->reply_type;
                         break;
                     case 'delete':
-                        return '/wechat/reply/delete?id='.$data->id.'&reply_type=' . $data->reply_type;
+                        return '/wechat/reply/delete?id=' . $data->id . '&reply_type=' . $data->reply_type;
                         break;
                 }
             },
