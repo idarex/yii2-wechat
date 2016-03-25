@@ -98,8 +98,11 @@ class ReplyController extends AdminController
         $type = Yii::$app->request->get('reply_type');
         $model = new WechatAutoReply();
         $model = $model->findOne($id);
-        $data = \Qiniu\json_decode($model->comment, true);
+        if ($type == 'text' || $type == 'onSubscribe' || $type == 'invalid') {
+            $model->comment = \Qiniu\json_decode($model->comment);
+        }
         if ($type == 'image') {
+            $data = \Qiniu\json_decode($model->comment, true);
             $model->comment = $data[0];
         }
         if ($request = Yii::$app->request->post()) {
