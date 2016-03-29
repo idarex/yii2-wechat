@@ -3,6 +3,7 @@
 namespace callmez\wechat\controllers;
 
 use common\components\Qiniu;
+use common\models\WechatAutoKeyWords;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\web\NotFoundHttpException;
@@ -49,16 +50,9 @@ class ReplyController extends AdminController
     {
         $type = Yii::$app->request->get('reply_type');
         $model = new WechatAutoReply();
+        $keywords = new WechatAutoKeyWords();
         if ($request = Yii::$app->request->post()) {
             $model->wid = $this->getWechat()->id;
-            if ($type == 'invalid') {
-                $model->key_words = 'invalid';
-            } elseif ($type == 'onSubscribe') {
-                $model->key_words = 'onSubscribe';
-            } else {
-                $model->key_words = $request['key_words'][0];
-            }
-
             $model->reply_type = $request['reply_type'];
             if ($request['reply_type'] == 'image') {
                 $url = $this->fileupload($_FILES);
@@ -78,11 +72,35 @@ class ReplyController extends AdminController
                 $model->comment = json_encode($request['data'][0]);
             }
             if ($model->save()) {
+                if ($request['key_words'] == null) {
+                    if ($type == 'invalid') {
+                        //$model->key_words = 'invalid';
+                        $keywords->key_words = 'invalid';
+                    } elseif ($type == 'onSubscribe') {
+                        //$model->key_words = 'onSubscribe';
+                        $keywords->key_words = 'onSubscribe';
+                    } else {
+                        //$model->key_words = $request['key_words'][0];
+                        $keywords->key_words = $request['key_words'][0];
+                    }
+                    $keywords->aid = $model->id;
+                    $keywords->save();
+                } else {
+                    foreach ($request['key_words'] as $key => $key_words) {
+                        if ($keywords->id !== null) {
+                            $keywords = new WechatAutoKeyWords();
+                        }
+                        $keywords->key_words = $key_words;
+                        $keywords->aid = $model->id;
+                        $keywords->save();
+                    }
+                }
                 return $this->redirect('index');
             }
         }
         return $this->render('create', [
             'model' => $model,
+            'keywords' => $keywords,
             'type' => $type,
         ]);
     }
@@ -96,6 +114,8 @@ class ReplyController extends AdminController
     public function actionUpdate($id)
     {
         $type = Yii::$app->request->get('reply_type');
+        $keywords = new WechatAutoKeyWords();
+        $keywords_data = $keywords->find()->where(['aid' => $id])->all();
         $model = new WechatAutoReply();
         $model = $model->findOne($id);
         if ($type == 'text' || $type == 'onSubscribe' || $type == 'invalid') {
@@ -107,18 +127,20 @@ class ReplyController extends AdminController
         }
         if ($request = Yii::$app->request->post()) {
             $model->wid = $this->getWechat()->id;
-            $model->key_words = $request['key_words'][0];
             $model->reply_type = $request['reply_type'];
             if ($request['reply_type'] == 'image') {
-                $url = $this->fileUpload($_FILES);
-                if (!$url) {
-                    $url = $request['pic_default'];
+                $url = $this->fileupload($_FILES);
+                if($_FILES['pic']['tmp_name'][0]==null){
+                   $url = $request['pic_default'];
+                }else {
+                    $url = $this->fileUpload($_FILES);
                 }
                 $model->comment = json_encode($url);
             } elseif ($request['reply_type'] == 'news') {
-                $url = $this->fileUpload($_FILES);
-                if (!$url) {
-                    $url = $request['pic_default'];
+                if($_FILES['pic']['tmp_name'][0]==null){
+                   $url = $request['pic_default'];
+                }else {
+                    $url = $this->fileUpload($_FILES);
                 }
                 $result = [];
                 foreach ($request['data'] as $key => $data) {
@@ -126,16 +148,29 @@ class ReplyController extends AdminController
                     $result[$key]['url'] = $url[$key];
                     $result[$key]['title'] = $request['title'][$key];
                     $result[$key]['link'] = $request['link'][$key];
+                    //$result[]['link']= $link[$key];
                 }
                 $model->comment = json_encode($result);
             } else {
                 $model->comment = json_encode($request['data'][0]);
             }
             if ($model->save()) {
+                if ($request['key_words'] != null) {
+                    $keywords->deleteAll(['aid'=>$model->id]);
+                    foreach ($request['key_words'] as $key => $key_words) {
+                        if ($keywords->id !== null) {
+                            $keywords = new WechatAutoKeyWords();
+                        }
+                        $keywords->key_words = $key_words;
+                        $keywords->aid = $model->id;
+                        $keywords->save();
+                    }
+                }
                 return $this->redirect('index');
             }
         }
-        return $this->render('update', ['model' => $model, 'type' => $type]);
+        return $this->render('update',
+            ['model' => $model, 'type' => $type, 'keywords' => $keywords, 'keywords_data' => $keywords_data]);
     }
 
     /**
@@ -149,6 +184,8 @@ class ReplyController extends AdminController
         $model = new WechatAutoReply();
         $model = $model->findOne($id);
         $model->delete();
+        $keywords = new WechatAutoKeyWords();
+        $keywords->deleteAll(['aid'=>$id]);
         return $this->redirect(['index']);
     }
 

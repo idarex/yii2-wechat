@@ -6,12 +6,22 @@ use callmez\wechat\widgets\ActiveForm;
 ?>
 
 <div class="reply-rule-form">
-    <?php
-    if ($type == 'news') {
-        echo Html::button('添加一条', ['class' => 'btn btn-success', 'onclick' => 'addform()']);
-        echo Html::button('删除一条', ['class' => 'btn btn-success', 'onclick' => 'delform()','style'=>'margin-left:10px']);
-    }
-    ?>
+    <p>
+        <?php
+        echo Html::button('添加关键字', ['class' => 'btn btn-success', 'onclick' => 'addkeywords()']);
+        echo Html::button('删除关键字',
+            ['class' => 'btn btn-success', 'onclick' => 'delkeywords()', 'style' => 'margin-left:10px']);
+        ?>
+    </p>
+    <p>
+        <?php
+        if ($type == 'news') {
+            echo Html::button('添加一条', ['class' => 'btn btn-success', 'onclick' => 'addform()']);
+            echo Html::button('删除一条',
+                ['class' => 'btn btn-success', 'onclick' => 'delform()', 'style' => 'margin-left:10px']);
+        }
+        ?>
+    </p>
     <?php $form = ActiveForm::begin([
         'layout' => 'horizontal',
         'options' => ['enctype' => 'multipart/form-data'],
@@ -25,8 +35,19 @@ use callmez\wechat\widgets\ActiveForm;
     </div>
     <?php
     if ($type == 'image' || $type == 'news' || $type == 'text') {
-        echo $form->field($model, 'key_words')->textInput(['maxlength' => true, 'name' => 'key_words[]']);
-    } ?>
+        if (Yii::$app->controller->action->id == 'update') {
+            foreach ($keywords_data as $kws) {
+                echo $form->field($keywords, 'key_words')->textInput([
+                    'maxlength' => true,
+                    'name' => 'key_words[]',
+                    'value' => $kws['key_words']
+                ]);
+            }
+        } else {
+            echo $form->field($keywords, 'key_words')->textInput(['maxlength' => true, 'name' => 'key_words[]']);
+        }
+    }
+    ?>
     <?= Html::hiddenInput('reply_type', $type) ?>
     <?php
 
@@ -63,15 +84,15 @@ use callmez\wechat\widgets\ActiveForm;
             }
         } else {
             echo $form->field($model, 'title')->textInput([
-                    'maxlength' => true,
-                    'name' => 'title[]',
-                    'value' => $value['title']
-                ]);
+                'maxlength' => true,
+                'name' => 'title[]',
+                'value' => $value['title']
+            ]);
             echo $form->field($model, 'link')->textInput([
-                    'maxlength' => true,
-                    'name' => 'link[]',
-                    'value' => $value['link']
-                ]);
+                'maxlength' => true,
+                'name' => 'link[]',
+                'value' => $value['link']
+            ]);
             echo $form->field($model, 'image')->fileInput(['name' => 'pic[]']);
             echo $form->field($model, 'comment')->textarea(['maxlength' => true, 'name' => 'data[]']);
         }
@@ -86,20 +107,37 @@ use callmez\wechat\widgets\ActiveForm;
     $html1 = str_replace(PHP_EOL, '', $form->field($model, 'title')->textInput(['name' => 'title[]']));
     $html2 = str_replace(PHP_EOL, '', $form->field($model, 'link')->textInput(['name' => 'link[]']));
     $html3 = str_replace(PHP_EOL, '', $form->field($model, 'image')->fileInput(['name' => 'pic[]']));
-    $html4 = str_replace(PHP_EOL, '', $form->field($model, 'comment')->textarea(['maxlength' => true, 'name' => 'data[]']));
+    $html4 = str_replace(PHP_EOL, '',
+        $form->field($model, 'comment')->textarea(['maxlength' => true, 'name' => 'data[]']));
     $html = $html1 . $html2 . $html3 . $html4;
+    $keys = str_replace(PHP_EOL, '',
+        $form->field($keywords, 'key_words')->textInput(['maxlength' => true, 'name' => 'key_words[]']));
     ?>
     <script>
+        <?php if($type == 'news'){?>
         function addform() {
             var form = $('.form-horizontal');
             form.append('<?php echo $html;?>');
         }
-        function delform(){
-            var obj = $('.form-horizontal').children().slice(-1.-3);
-            if($('.form-horizontal').children().length>5){
+        function delform() {
+            var obj = $('.form-horizontal').children().slice(-1. - 3);
+            if ($('.form-horizontal').children().length > 8) {
                 obj.remove();
-            }else {
-               alert('不能再删了');
+            } else {
+                alert('不能再删了');
+            }
+        }
+        <?php }?>
+        function addkeywords() {
+            var obj = $('.form-horizontal').children().slice(1, 2);
+            obj.after('<?php echo $keys;?>');
+        }
+        function delkeywords() {
+            var obj = $('.form-horizontal').children().slice(2, 3);
+            if ($('.form-horizontal').children().length > 5) {
+                obj.remove();
+            } else {
+                alert('不能再删了');
             }
         }
     </script>
