@@ -17,6 +17,7 @@ $this->title = $arr[$type];
 <?php PagePanel::begin(['options' => ['class' => 'reply-create']]) ?>
 <?= $this->render('_form', [
     'model' => $model,
+    'keywords'=> $keywords,
     'type' => $type,
 ]) ?>
 

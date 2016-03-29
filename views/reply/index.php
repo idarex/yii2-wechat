@@ -24,7 +24,22 @@ $this->params['breadcrumbs'][] = $this->title;
                 'width' => 75
             ]
         ],
-        'key_words',
+        [
+            'format'=>raw,
+            'header'=>'<a>关键字</a>',
+            'value'=>function($data){
+                $keywords = '';
+                $result = \common\models\WechatAutoKeyWords::find()->where(['aid'=>$data->id])->all();
+                if(count($result) != 0){
+                    foreach($result as $value){
+                       $keywords .= $value['key_words'].',';
+                    }
+                    return trim($keywords,',');
+                }else{
+                    return null;
+                }
+            },
+        ],
         [
             'format' => raw,
             'header' => '<a>回复类型</a>',
