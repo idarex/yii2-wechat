@@ -23,21 +23,6 @@ class Bootstrap implements BootstrapInterface
         !isset(Yii::$aliases['@storage']) or Yii::setAlias('@storage', Yii::getAlias('@web/storage'));
         !isset(Yii::$aliases['@storageRoot']) or Yii::setAlias('@storageRoot', Yii::getAlias('@webroot/storage'));
 
-        if ($app->hasModule('gii')) { // 增加gii生成器
-            $gii = $app->getModule('gii');
-
-            if (!array_key_exists('wechat', $gii->generators)) { // 微信生成器
-                $gii->generators['wechat'] = [
-                    'class' => 'callmez\wechat\generators\module\Generator'
-                ];
-            }
-
-            if (!array_key_exists('ajaxcrud', $gii->generators)) { // AJAX-CRUD
-                $gii->generators['ajaxcrud'] = [
-                    'class' => 'callmez\ajaxcrud\generators\crud\Generator'
-                ];
-            }
-        }
         if (!$app->hasMethod('gridview')) { // 设置 GridView模块
             $app->setModule('gridview', [
                 'class' => '\kartik\grid\Module'

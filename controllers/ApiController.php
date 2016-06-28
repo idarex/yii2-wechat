@@ -33,11 +33,6 @@ class ApiController extends BaseController
     public $message;
 
     /**
-     * 向subScribe控制器传数据
-     *
-     */
-    public $requests;
-    /**
      * @var Wechat
      */
     private $_wechat;
